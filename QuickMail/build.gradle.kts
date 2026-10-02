@@ -1,5 +1,5 @@
 group = "com.amirbahadoramiri"
-version = "1.0.1"
+version = "1.0.2"
 
 plugins {
     alias(libs.plugins.android.library)
@@ -16,6 +16,13 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

@@ -27,7 +27,7 @@ allprojects {
 
 ```groovy
 dependencies {
-    implementation("com.github.AmirBahadorAmiri:QuickMail:1.0.0")
+    implementation("com.github.AmirBahadorAmiri:QuickMail:1.0.2")
 }
 ```
 
