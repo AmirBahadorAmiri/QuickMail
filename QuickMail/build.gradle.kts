@@ -1,3 +1,6 @@
+group = "com.amirbahadoramiri"
+version = "1.0.0"
+
 plugins {
     alias(libs.plugins.android.library)
 }
