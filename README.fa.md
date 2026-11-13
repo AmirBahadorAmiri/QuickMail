@@ -27,7 +27,7 @@ allprojects {
 
 ```groovy
 dependencies {
-    implementation("com.github.AmirBahadorAmiri:QuickMail:1.0.2")
+    implementation("com.github.AmirBahadorAmiri:QuickMail:1.1.0")
 }
 ```
 
@@ -51,17 +51,17 @@ QuickMailConfig config = new QuickMailConfig("you@gmail.com", "your-app-password
 QuickMail.withAccount(config)
         .withTitle("Hello from QuickMail")
         .withBody("<h1>Hi 👋</h1><p>Sent from Android.</p>")
-        .withSender("you@gmail.com")
+        .withSenderName("QuickMail App")
         .toEmailAddress("friend@gmail.com")
-        .withListenner(new QuickMailListener() {
+        .withListener(new QuickMailListener() {
             @Override
             public void onSuccess() {
                 Log.d("MY_APP", "onSuccess");
             }
 
             @Override
-            public void onFailure(@NotNull Exception error) {
-                Log.d("MY_APP", "onFailure: " + error.getMessage());
+            public void onFailure(Throwable t) {
+                Log.d("MY_APP", "onFailure: " + t.getMessage());
             }
         })
         .send();
@@ -73,27 +73,118 @@ QuickMail.withAccount(config)
 QuickMail.withAccount(QuickMailConfig("you@gmail.com", "your-app-password"))
     .withTitle("Hello from QuickMail")
     .withBody("Sent from Android.")
-    .withSender("you@gmail.com")
+    .withSenderName("QuickMail App")
     .toEmailAddress("friend@gmail.com")
-    .withListenner(object : QuickMailListener {
+    .withListener(object : QuickMailListener {
         override fun onSuccess() = Log.d("MY_APP", "onSuccess")
-        override fun onFailure(error: Exception) = Log.d("MY_APP", "onFailure: ${error.message}")
+        override fun onFailure(t: Throwable) = Log.d("MY_APP", "onFailure: ${t.message}")
     })
     .send()
 ```
 
-<details>
-<summary>این wrapper چه کاری برایت انجام می‌دهد</summary>
-
-- **تنظیمات آماده SMTP** — `smtp.gmail.com`، پورت `465`، SSL و `TLSv1.2`.
-- **خارج از نخ اصلی** — با `AsyncTask` اجرا می‌شود؛ نتیجه از طریق `QuickMailListener` برمی‌گردد.
-- **تشخیص خودکار HTML** — اگر متن بدنه شبیه HTML باشد، نوع محتوا به `text/html` تغییر می‌کند.
-- **چند گیرنده** — کافی است یک رشته با کاما پاس بدهی.
-- **`QuickMailConfig`** — کلاس اختیاری `data class(email, password)` اگر ترجیح بدهی دو رشته پاس ندهی.
-
-</details>
-
 > ⚠️ جیمیل به‌جای رمز عبور حساب، [App Password](https://myaccount.google.com/apppasswords) می‌خواهد.
+
+---
+
+## 📚 API
+
+### حساب
+
+| متد | توضیح |
+| --- | --- |
+| `withAccount(String email, String password)` | یک builder جدید برای یک حساب می‌سازد. |
+| `withAccount(QuickMailConfig config)` | همان، با استفاده از شیء config. |
+
+هر فراخوانی یک **نمونه‌ی مستقل و جدید** برمی‌گرداند، پس می‌توانی چند ایمیل را هم‌زمان آماده و ارسال کنی بدون اینکه روی هم اثر بگذارند.
+
+### پیام
+
+| متد | توضیح |
+| --- | --- |
+| `withTitle(String title)` | موضوع ایمیل. |
+| `withBody(String body)` | بدنه‌ی متنی (HTML به‌صورت خودکار تشخیص داده می‌شود). |
+| `withHtmlBody(String body)` | بدنه را به‌اجبار به‌صورت `text/html` می‌فرستد. |
+| `toEmailAddress(String address)` | یک گیرنده، یا رشته‌ای از آدرس‌ها با کاما. |
+| `toEmailAddresses(String... addresses)` | هر تعداد گیرنده. |
+| `withCc(String... addresses)` | گیرنده‌های رونوشت (CC). |
+| `withBcc(String... addresses)` | گیرنده‌های رونوشت مخفی (BCC). |
+| `withReplyTo(String address)` | آدرس پاسخ. |
+| `withSenderName(String name)` | نام نمایشی در هدر From. **نباید** آدرس ایمیل باشد. |
+| `withSenderAddress(String address)` | آدرس صریح From (جیمیل فقط آدرس حساب احراز هویت‌شده را قبول می‌کند). |
+
+> 💡 اگر اشتباهی آدرس ایمیل بدهی، `withSenderName` یک `IllegalArgumentException` می‌دهد؛ پس هیچ‌وقت به‌خاطر یک تایپ، هدر From خراب نمی‌شود. برای آدرس صریح از `withSenderAddress` استفاده کن.
+
+### پیوست‌ها
+
+```java
+QuickMail.withAccount(config)
+        .withTitle("Report")
+        .withBody("See the attached file.")
+        .toEmailAddress("friend@gmail.com")
+        .withAttachment("/storage/emulated/0/Download/report.pdf")
+        .send();
+```
+
+```java
+// آدرس content://، مثلاً از فایل‌پیکر اندروید
+QuickMail.withAccount(config)
+        .withTitle("Report")
+        .withBody("See the attached file.")
+        .toEmailAddress("friend@gmail.com")
+        .withAttachment(this, pickedUri)
+        .send();
+```
+
+| متد | توضیح |
+| --- | --- |
+| `withAttachment(String filePath)` | پیوست فایل با مسیر. |
+| `withAttachment(File file)` | پیوست یک `File`. |
+| `withAttachment(Context context, Uri uri)` | پیوست آدرس `content://` (فایل‌پیکر، DocumentsProvider و…). از application context استفاده می‌شود، پس Activity leak نمی‌کند. |
+| `withAttachment(ContentResolver resolver, Uri uri)` | همان، با resolver مشخص. |
+
+`withAttachment` را می‌توانی چند بار صدا بزنی تا چند فایل پیوست کنی. نام نمایشی از `OpenableColumns.DISPLAY_NAME` خوانده می‌شود و نوع MIME از پسوند فایل تشخیص داده می‌شود.
+
+### SMTP و پایداری
+
+| متد | توضیح |
+| --- | --- |
+| `withHost(String host)` | هاست SMTP. پیش‌فرض `smtp.gmail.com`. |
+| `withPort(int port)` | پورت SMTP. پیش‌فرض `465` (SSL ضمنی). برای `587` از `withStartTls(true)` استفاده کن. |
+| `withStartTls(boolean)` | استفاده از STARTTLS به‌جای SSL ضمنی. |
+| `withTimeout(int millis)` | تایم‌اوت اتصال/خواندن. `0` (پیش‌فرض) یعنی بدون تایم‌اوت. |
+| `withRetry(int count)` | تعداد تلاش مجدد اضافه بعد از شکست ارسال. |
+| `withLogs(boolean)` | لاگ دیباگ با تگ `QuickMail` در Logcat. |
+
+### ارسال
+
+| متد | توضیح |
+| --- | --- |
+| `withListener(QuickMailListener listener)` | دریافت `onSuccess()` / `onFailure(Throwable)`. |
+| `validate()` | حساب، آدرس‌ها و پیوست‌ها را بررسی می‌کند و در صورت مشکل خطای توصیفی می‌دهد. |
+| `send()` | اعتبارسنجی می‌کند و ایمیل را می‌فرستد. |
+
+```java
+QuickMail.withAccount(config)
+        .withTitle("Hello")
+        .withBody("Hi!")
+        .toEmailAddress("friend@gmail.com")
+        .withRetry(2)
+        .withTimeout(10000)
+        .withLogs(true)
+        .send();
+```
+
+---
+
+## 🔍 این wrapper چه کاری برایت انجام می‌دهد
+
+- **تنظیم آماده SMTP** — `smtp.gmail.com`، پورت `465`، SSL و `TLSv1.2`، با امکان تغییر host/port/STARTTLS.
+- **خارج از نخ اصلی** — کار SMTP روی یک `ExecutorService` انجام می‌شود؛ callbackها با `Handler` روی نخ اصلی تحویل داده می‌شوند.
+- **ارسال هم‌زمان** — thread pool از نوع cached، پس ایمیل‌های موازی پشت سر هم صف نمی‌شوند.
+- **تشخیص خودکار HTML** — اگر متن بدنه شبیه HTML باشد، نوع محتوا به `text/html` تغییر می‌کند؛ `withHtmlBody` آن را اجباری می‌کند.
+- **UTF-8 همه‌جا** — موضوع و بدنه صریحاً انکد می‌شوند، پس متن فارسی و سایر کاراکترهای غیر ASCII سالم می‌مانند.
+- **اعتبارسنجی** — نبود اطلاعات حساب، آدرس نامعتبر و پیوست غیرقابل‌خواندن پیش از ارسال گرفته می‌شود؛ خطای اعتبارسنجی همیشه لاگ می‌شود (حتی با لاگ دیباگ خاموش) و از طریق `onFailure` هم گزارش می‌شود.
+- **هدر From امن** — نام نمایشی و آدرس جداگانه ست می‌شوند، پس نام‌های غیر ASCII درست نمایش داده می‌شوند.
 
 ---
 
@@ -131,7 +222,7 @@ android {
 
 ## 🤝 مشارکت
 
-خوش‌آمدید به issue و PR. اگر مشکلی پیش آمد، لطفاً فراخوانی `send()` که استفاده کردید (با حذف اطلاعات محرمانه) و استک تریس `onFailure(error)` را بفرستید.
+خوش‌آمدید به issue و PR. اگر مشکلی پیش آمد، لطفاً فراخوانی `send()` که استفاده کردید (با حذف اطلاعات محرمانه) و استک تریس `onFailure(t)` را بفرستید.
 
 ---
 
