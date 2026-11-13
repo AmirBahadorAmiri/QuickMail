@@ -2,7 +2,7 @@
 <project version="4">
   <component name="MarkdownSettings">
     <option name="previewPanelProviderInfo">
-      <ProviderInfo name="Compose (experimental)" className="com.intellij.markdown.compose.preview.ComposePanelProvider" />
+      <ProviderInfo name="Chromium browser" className="org.intellij.plugins.markdown.ui.preview.jcef.JCEFHtmlPanelProvider" />
     </option>
   </component>
 </project>

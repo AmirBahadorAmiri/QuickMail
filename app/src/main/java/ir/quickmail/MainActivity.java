@@ -14,7 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class MainActivity extends AppCompatActivity {
 
-    String email = "email";
+    // Email Address
+    String email = "email@gmail.com";
+    // Get a Gmail App Password from your Google Account.
     String password = "password";
     QuickMailConfig config = new QuickMailConfig(email, password);
 
@@ -36,8 +38,8 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(@NotNull Exception error) {
-                        Log.d(TAG, "onFailure: " + error.getMessage());
+                    public void onFailure(Throwable t) {
+                        Log.d(TAG, "onFailure: " + t.getMessage());
                     }
                 })
                 .send();
