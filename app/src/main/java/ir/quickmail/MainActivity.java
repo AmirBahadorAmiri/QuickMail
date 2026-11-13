@@ -29,9 +29,9 @@ public class MainActivity extends AppCompatActivity {
         QuickMail.withAccount(config)
                 .withTitle("Title For Test")
                 .withBody("Body For Test")
-                .withSender(getString(R.string.app_name))
-                .toEmailAddress("example@gmail.com , sample@gmail.com")
-                .withListenner(new QuickMailListener() {
+                .withSenderName(getString(R.string.app_name))
+                .toEmailAddresses("example@gmail.com", "sample@gmail.com")
+                .withListener(new QuickMailListener() {
                     @Override
                     public void onSuccess() {
                         Log.d(TAG, "onSuccess: ");
@@ -42,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "onFailure: " + t.getMessage());
                     }
                 })
+                .withRetry(1)
+                .withTimeout(10000)
+                .withLogs(true)
                 .send();
 
     }
